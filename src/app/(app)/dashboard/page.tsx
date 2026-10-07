@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireUser } from "@/server/auth/session";
 import { getProfile } from "@/server/profiles/queries";
 
@@ -11,8 +12,11 @@ export default async function DashboardPage() {
     <div className="flex flex-col gap-2">
       <h1 className="text-2xl font-semibold">Welcome, {profile?.display_name ?? profile?.email ?? "there"}</h1>
       <p className="text-sm text-black/60 dark:text-white/60">
-        Organizations and projects arrive in the next foundation step.
+        Projects and teams arrive in later phases.
       </p>
+      <Link href="/organizations/new" className="text-sm underline">
+        Create an organization
+      </Link>
     </div>
   );
 }

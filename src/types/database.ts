@@ -23,7 +23,41 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "profiles": {
+            "organization_members": {
+                  Row: {
+                    "created_at": string,"id": string,"organization_id": string,"role": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"organization_id": string,"role": string,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"organization_id"?: string,"role"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "organization_members_organization_id_fkey"
+      columns: ["organization_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"organizations": {
+                  Row: {
+                    "created_at": string,"created_by": string,"id": string,"name": string,"slug": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by": string,"id"?: string,"name": string,"slug": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string,"id"?: string,"name"?: string,"slug"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"profiles": {
                   Row: {
                     "avatar_url": string | null,"created_at": string,"display_name": string | null,"email": string,"id": string,"updated_at": string
                   }
@@ -43,7 +77,17 @@ export type Database = {
             [_ in never]: never
           }
           Functions: {
-            [_ in never]: never
+            "create_organization":
+{ Args: { "p_name": string }; Returns: {
+              "id": string,"name": string,"role": string,"slug": string
+            }[]
+                           },
+"has_org_role":
+{ Args: { "p_org_id": string,"p_roles": (string)[] }; Returns: boolean
+                           },
+"is_org_member":
+{ Args: { "p_org_id": string }; Returns: boolean
+                           }
           }
           Enums: {
             [_ in never]: never
