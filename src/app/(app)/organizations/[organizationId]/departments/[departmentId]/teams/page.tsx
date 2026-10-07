@@ -53,6 +53,12 @@ export default async function TeamsPage({
               <span className="text-sm text-black/60 dark:text-white/60">
                 {team.memberCount} {team.memberCount === 1 ? "member" : "members"}
               </span>
+              <Link
+                href={`/organizations/${organization.id}/departments/${department.id}/teams/${team.id}/projects`}
+                className="text-sm underline"
+              >
+                Projects
+              </Link>
             </li>
           ))}
         </ul>

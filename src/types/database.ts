@@ -111,6 +111,26 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"projects": {
+                  Row: {
+                    "created_at": string,"created_by": string,"description": string | null,"id": string,"name": string,"project_type": string,"slug": string,"status": string,"team_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by": string,"description"?: string | null,"id"?: string,"name": string,"project_type": string,"slug": string,"status"?: string,"team_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string,"description"?: string | null,"id"?: string,"name"?: string,"project_type"?: string,"slug"?: string,"status"?: string,"team_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "projects_team_id_fkey"
+      columns: ["team_id"]
+isOneToOne: false
+      referencedRelation: "teams"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"team_members": {
                   Row: {
                     "created_at": string,"id": string,"team_id": string,"user_id": string
@@ -165,6 +185,11 @@ isOneToOne: false
 "create_organization":
 { Args: { "p_name": string }; Returns: {
               "id": string,"name": string,"role": string,"slug": string
+            }[]
+                           },
+"create_project":
+{ Args: { "p_description"?: string,"p_name": string,"p_project_type"?: string,"p_team_id": string }; Returns: {
+              "description": string,"id": string,"name": string,"project_type": string,"slug": string,"status": string,"team_id": string
             }[]
                            },
 "create_team":

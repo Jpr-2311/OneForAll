@@ -16,6 +16,20 @@ export async function getMyDepartment(organizationId: string, departmentId: stri
   return data;
 }
 
+// The team, only if it belongs to the given department and the caller can see it.
+export async function getMyTeam(departmentId: string, teamId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("teams")
+    .select("id, name, department_id")
+    .eq("id", teamId)
+    .eq("department_id", departmentId)
+    .maybeSingle();
+
+  if (error) throw new Error(`Failed to load team: ${error.message}`);
+  return data;
+}
+
 export async function listTeams(departmentId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
