@@ -131,6 +131,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"repositories": {
+                  Row: {
+                    "created_at": string,"created_by": string,"default_branch": string,"id": string,"name": string,"owner": string,"project_id": string,"provider": string,"repository_url": string,"status": string,"updated_at": string,"visibility": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by": string,"default_branch": string,"id"?: string,"name": string,"owner": string,"project_id": string,"provider": string,"repository_url": string,"status"?: string,"updated_at"?: string,"visibility"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string,"default_branch"?: string,"id"?: string,"name"?: string,"owner"?: string,"project_id"?: string,"provider"?: string,"repository_url"?: string,"status"?: string,"updated_at"?: string,"visibility"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "repositories_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: true
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"requirements": {
                   Row: {
                     "created_at": string,"created_by": string,"description": string | null,"id": string,"priority": string,"project_id": string,"status": string,"title": string,"updated_at": string
@@ -230,6 +250,11 @@ isOneToOne: false
 "create_project":
 { Args: { "p_description"?: string,"p_name": string,"p_project_type"?: string,"p_team_id": string }; Returns: {
               "description": string,"id": string,"name": string,"project_type": string,"slug": string,"status": string,"team_id": string
+            }[]
+                           },
+"create_repository":
+{ Args: { "p_default_branch": string,"p_name": string,"p_owner": string,"p_project_id": string,"p_provider": string,"p_repository_url": string,"p_visibility"?: string }; Returns: {
+              "default_branch": string,"id": string,"name": string,"owner": string,"project_id": string,"provider": string,"repository_url": string,"status": string,"visibility": string
             }[]
                            },
 "create_requirement":
