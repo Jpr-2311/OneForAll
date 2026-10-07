@@ -111,6 +111,46 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"team_members": {
+                  Row: {
+                    "created_at": string,"id": string,"team_id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"team_id": string,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"team_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "team_members_team_id_fkey"
+      columns: ["team_id"]
+isOneToOne: false
+      referencedRelation: "teams"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"teams": {
+                  Row: {
+                    "created_at": string,"created_by": string,"department_id": string,"description": string | null,"id": string,"name": string,"slug": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by": string,"department_id": string,"description"?: string | null,"id"?: string,"name": string,"slug": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string,"department_id"?: string,"description"?: string | null,"id"?: string,"name"?: string,"slug"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "teams_department_id_fkey"
+      columns: ["department_id"]
+isOneToOne: false
+      referencedRelation: "departments"
+      referencedColumns: ["id"]
+    }
+                  ]
                 }
           }
           Views: {
@@ -125,6 +165,11 @@ isOneToOne: false
 "create_organization":
 { Args: { "p_name": string }; Returns: {
               "id": string,"name": string,"role": string,"slug": string
+            }[]
+                           },
+"create_team":
+{ Args: { "p_department_id": string,"p_description"?: string,"p_name": string }; Returns: {
+              "department_id": string,"description": string,"id": string,"name": string,"slug": string
             }[]
                            },
 "has_org_role":

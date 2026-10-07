@@ -47,6 +47,12 @@ export default async function DepartmentsPage({ params }: PageProps<"/organizati
               <span className="text-sm text-black/60 dark:text-white/60">
                 {department.memberCount} {department.memberCount === 1 ? "member" : "members"}
               </span>
+              <Link
+                href={`/organizations/${organization.id}/departments/${department.id}/teams`}
+                className="text-sm underline"
+              >
+                Teams
+              </Link>
             </li>
           ))}
         </ul>
