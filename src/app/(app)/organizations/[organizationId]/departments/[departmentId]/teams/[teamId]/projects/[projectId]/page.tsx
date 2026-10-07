@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { idSchema } from "@/server/departments/schema";
 import { DisconnectRepositoryForm } from "@/components/repositories/disconnect-repository-form";
+import { RepositoryIntelligence } from "@/components/repository-snapshots/repository-intelligence";
 import { getMyProject, getTeamContext } from "@/server/projects/queries";
 import { disconnectRepository } from "@/server/repositories/actions";
 import { getMyRepository } from "@/server/repositories/queries";
@@ -99,6 +100,14 @@ export default async function ProjectPage({
           </>
         )}
       </section>
+
+      {repository && (
+        <RepositoryIntelligence
+          repositoryId={repository.id}
+          repositoryPath={`/organizations/${organization.id}/departments/${department.id}/teams/${team.id}/projects/${project.id}/repository`}
+          canManage={canManage}
+        />
+      )}
     </div>
   );
 }

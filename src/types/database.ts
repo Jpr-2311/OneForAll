@@ -151,6 +151,46 @@ isOneToOne: true
       referencedColumns: ["id"]
     }
                   ]
+                },"repository_files": {
+                  Row: {
+                    "content_hash": string,"created_at": string,"id": string,"language": string | null,"path": string,"size_bytes": number,"snapshot_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "content_hash": string,"created_at"?: string,"id"?: string,"language"?: string | null,"path": string,"size_bytes": number,"snapshot_id": string
+                  }
+                  Update: {
+                    "content_hash"?: string,"created_at"?: string,"id"?: string,"language"?: string | null,"path"?: string,"size_bytes"?: number,"snapshot_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "repository_files_snapshot_id_fkey"
+      columns: ["snapshot_id"]
+isOneToOne: false
+      referencedRelation: "repository_snapshots"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"repository_snapshots": {
+                  Row: {
+                    "branch": string,"commit_sha": string,"completed_at": string | null,"created_at": string,"error_message": string | null,"id": string,"repository_id": string,"started_at": string | null,"status": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "branch": string,"commit_sha": string,"completed_at"?: string | null,"created_at"?: string,"error_message"?: string | null,"id"?: string,"repository_id": string,"started_at"?: string | null,"status"?: string
+                  }
+                  Update: {
+                    "branch"?: string,"commit_sha"?: string,"completed_at"?: string | null,"created_at"?: string,"error_message"?: string | null,"id"?: string,"repository_id"?: string,"started_at"?: string | null,"status"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "repository_snapshots_repository_id_fkey"
+      columns: ["repository_id"]
+isOneToOne: false
+      referencedRelation: "repositories"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"requirements": {
                   Row: {
                     "created_at": string,"created_by": string,"description": string | null,"id": string,"priority": string,"project_id": string,"status": string,"title": string,"updated_at": string
@@ -255,6 +295,11 @@ isOneToOne: false
 "create_repository":
 { Args: { "p_default_branch": string,"p_name": string,"p_owner": string,"p_project_id": string,"p_provider": string,"p_repository_url": string,"p_visibility"?: string }; Returns: {
               "default_branch": string,"id": string,"name": string,"owner": string,"project_id": string,"provider": string,"repository_url": string,"status": string,"visibility": string
+            }[]
+                           },
+"create_repository_snapshot":
+{ Args: { "p_branch": string,"p_commit_sha": string,"p_repository_id": string }; Returns: {
+              "branch": string,"commit_sha": string,"created_at": string,"id": string,"repository_id": string,"status": string
             }[]
                            },
 "create_requirement":
