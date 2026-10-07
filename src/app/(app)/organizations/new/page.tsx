@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { CreateOrganizationForm } from "@/components/organizations/create-organization-form";
 import { listMyOrganizations } from "@/server/organizations/queries";
 
@@ -20,7 +21,10 @@ export default async function NewOrganizationPage() {
           <ul className="flex flex-col gap-1 text-sm">
             {organizations.map((org) => (
               <li key={org.id}>
-                {org.name} <span className="text-black/60 dark:text-white/60">({org.role})</span>
+                {org.name} <span className="text-black/60 dark:text-white/60">({org.role})</span>{" "}
+                <Link href={`/organizations/${org.id}/departments`} className="underline">
+                  Departments
+                </Link>
               </li>
             ))}
           </ul>

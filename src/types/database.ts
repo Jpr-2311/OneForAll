@@ -23,7 +23,47 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "organization_members": {
+            "department_members": {
+                  Row: {
+                    "created_at": string,"department_id": string,"id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"department_id": string,"id"?: string,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"department_id"?: string,"id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "department_members_department_id_fkey"
+      columns: ["department_id"]
+isOneToOne: false
+      referencedRelation: "departments"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"departments": {
+                  Row: {
+                    "created_at": string,"created_by": string,"description": string | null,"id": string,"name": string,"organization_id": string,"slug": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by": string,"description"?: string | null,"id"?: string,"name": string,"organization_id": string,"slug": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string,"description"?: string | null,"id"?: string,"name"?: string,"organization_id"?: string,"slug"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "departments_organization_id_fkey"
+      columns: ["organization_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"organization_members": {
                   Row: {
                     "created_at": string,"id": string,"organization_id": string,"role": string,"user_id": string
                   }
@@ -77,7 +117,12 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "create_organization":
+            "create_department":
+{ Args: { "p_description"?: string,"p_name": string,"p_organization_id": string }; Returns: {
+              "description": string,"id": string,"name": string,"organization_id": string,"slug": string
+            }[]
+                           },
+"create_organization":
 { Args: { "p_name": string }; Returns: {
               "id": string,"name": string,"role": string,"slug": string
             }[]
@@ -87,6 +132,9 @@ isOneToOne: false
                            },
 "is_org_member":
 { Args: { "p_org_id": string }; Returns: boolean
+                           },
+"slugify":
+{ Args: { "p_fallback"?: string,"p_input": string }; Returns: string
                            }
           }
           Enums: {
