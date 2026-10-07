@@ -39,6 +39,12 @@ export default async function ProjectPage({
         <dt className="text-black/60 dark:text-white/60">Team</dt>
         <dd>{team.name}</dd>
       </dl>
+      <Link
+        href={`/organizations/${organization.id}/departments/${department.id}/teams/${team.id}/projects/${project.id}/requirements`}
+        className="text-sm underline"
+      >
+        Requirements
+      </Link>
     </div>
   );
 }

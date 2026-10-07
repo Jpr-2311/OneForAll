@@ -131,6 +131,46 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"requirements": {
+                  Row: {
+                    "created_at": string,"created_by": string,"description": string | null,"id": string,"priority": string,"project_id": string,"status": string,"title": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by": string,"description"?: string | null,"id"?: string,"priority"?: string,"project_id": string,"status"?: string,"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string,"description"?: string | null,"id"?: string,"priority"?: string,"project_id"?: string,"status"?: string,"title"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "requirements_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"tasks": {
+                  Row: {
+                    "created_at": string,"created_by": string,"description": string | null,"id": string,"priority": string,"requirement_id": string,"status": string,"title": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by": string,"description"?: string | null,"id"?: string,"priority"?: string,"requirement_id": string,"status"?: string,"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string,"description"?: string | null,"id"?: string,"priority"?: string,"requirement_id"?: string,"status"?: string,"title"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "tasks_requirement_id_fkey"
+      columns: ["requirement_id"]
+isOneToOne: false
+      referencedRelation: "requirements"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"team_members": {
                   Row: {
                     "created_at": string,"id": string,"team_id": string,"user_id": string
@@ -190,6 +230,16 @@ isOneToOne: false
 "create_project":
 { Args: { "p_description"?: string,"p_name": string,"p_project_type"?: string,"p_team_id": string }; Returns: {
               "description": string,"id": string,"name": string,"project_type": string,"slug": string,"status": string,"team_id": string
+            }[]
+                           },
+"create_requirement":
+{ Args: { "p_description"?: string,"p_priority"?: string,"p_project_id": string,"p_title": string }; Returns: {
+              "description": string,"id": string,"priority": string,"project_id": string,"status": string,"title": string
+            }[]
+                           },
+"create_task":
+{ Args: { "p_description"?: string,"p_priority"?: string,"p_requirement_id": string,"p_title": string }; Returns: {
+              "description": string,"id": string,"priority": string,"requirement_id": string,"status": string,"title": string
             }[]
                            },
 "create_team":
