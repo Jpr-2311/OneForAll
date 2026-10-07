@@ -103,6 +103,10 @@ export default async function ProjectPage({
 
       {repository && (
         <RepositoryIntelligence
+          organizationId={organization.id}
+          departmentId={department.id}
+          teamId={team.id}
+          projectId={project.id}
           repositoryId={repository.id}
           repositoryPath={`/organizations/${organization.id}/departments/${department.id}/teams/${team.id}/projects/${project.id}/repository`}
           canManage={canManage}

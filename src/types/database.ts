@@ -191,6 +191,84 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"repository_structure_analyses": {
+                  Row: {
+                    "completed_at": string | null,"created_at": string,"error_message": string | null,"files_analyzed": number,"files_failed": number,"files_total": number,"files_unsupported": number,"id": string,"relationships_count": number,"snapshot_id": string,"started_at": string | null,"status": string,"symbols_count": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "completed_at"?: string | null,"created_at"?: string,"error_message"?: string | null,"files_analyzed"?: number,"files_failed"?: number,"files_total"?: number,"files_unsupported"?: number,"id"?: string,"relationships_count"?: number,"snapshot_id": string,"started_at"?: string | null,"status"?: string,"symbols_count"?: number
+                  }
+                  Update: {
+                    "completed_at"?: string | null,"created_at"?: string,"error_message"?: string | null,"files_analyzed"?: number,"files_failed"?: number,"files_total"?: number,"files_unsupported"?: number,"id"?: string,"relationships_count"?: number,"snapshot_id"?: string,"started_at"?: string | null,"status"?: string,"symbols_count"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "repository_structure_analyses_snapshot_id_fkey"
+      columns: ["snapshot_id"]
+isOneToOne: true
+      referencedRelation: "repository_snapshots"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"repository_symbol_relationships": {
+                  Row: {
+                    "analysis_id": string,"created_at": string,"id": string,"relationship_type": string,"source_symbol_id": string,"target_symbol_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "analysis_id": string,"created_at"?: string,"id"?: string,"relationship_type": string,"source_symbol_id": string,"target_symbol_id": string
+                  }
+                  Update: {
+                    "analysis_id"?: string,"created_at"?: string,"id"?: string,"relationship_type"?: string,"source_symbol_id"?: string,"target_symbol_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "repository_symbol_relationships_analysis_id_fkey"
+      columns: ["analysis_id"]
+isOneToOne: false
+      referencedRelation: "repository_structure_analyses"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "repository_symbol_relationships_source_symbol_id_fkey"
+      columns: ["source_symbol_id"]
+isOneToOne: false
+      referencedRelation: "repository_symbols"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "repository_symbol_relationships_target_symbol_id_fkey"
+      columns: ["target_symbol_id"]
+isOneToOne: false
+      referencedRelation: "repository_symbols"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"repository_symbols": {
+                  Row: {
+                    "analysis_id": string,"created_at": string,"end_column": number,"end_line": number,"file_id": string,"id": string,"kind": string,"name": string,"qualified_name": string | null,"signature": string | null,"start_column": number,"start_line": number,"visibility": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "analysis_id": string,"created_at"?: string,"end_column": number,"end_line": number,"file_id": string,"id"?: string,"kind": string,"name": string,"qualified_name"?: string | null,"signature"?: string | null,"start_column": number,"start_line": number,"visibility"?: string | null
+                  }
+                  Update: {
+                    "analysis_id"?: string,"created_at"?: string,"end_column"?: number,"end_line"?: number,"file_id"?: string,"id"?: string,"kind"?: string,"name"?: string,"qualified_name"?: string | null,"signature"?: string | null,"start_column"?: number,"start_line"?: number,"visibility"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "repository_symbols_analysis_id_fkey"
+      columns: ["analysis_id"]
+isOneToOne: false
+      referencedRelation: "repository_structure_analyses"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "repository_symbols_file_id_fkey"
+      columns: ["file_id"]
+isOneToOne: false
+      referencedRelation: "repository_files"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"requirements": {
                   Row: {
                     "created_at": string,"created_by": string,"description": string | null,"id": string,"priority": string,"project_id": string,"status": string,"title": string,"updated_at": string
@@ -277,7 +355,12 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "create_department":
+            "begin_structure_analysis":
+{ Args: { "p_analysis_id": string }; Returns: {
+              "analysis_id": string,"run_token": string
+            }[]
+                           },
+"create_department":
 { Args: { "p_description"?: string,"p_name": string,"p_organization_id": string }; Returns: {
               "description": string,"id": string,"name": string,"organization_id": string,"slug": string
             }[]
@@ -307,6 +390,11 @@ isOneToOne: false
               "description": string,"id": string,"priority": string,"project_id": string,"status": string,"title": string
             }[]
                            },
+"create_structure_analysis":
+{ Args: { "p_snapshot_id": string }; Returns: {
+              "created_at": string,"id": string,"snapshot_id": string,"status": string
+            }[]
+                           },
 "create_task":
 { Args: { "p_description"?: string,"p_priority"?: string,"p_requirement_id": string,"p_title": string }; Returns: {
               "description": string,"id": string,"priority": string,"requirement_id": string,"status": string,"title": string
@@ -317,11 +405,26 @@ isOneToOne: false
               "department_id": string,"description": string,"id": string,"name": string,"slug": string
             }[]
                            },
+"fail_structure_analysis":
+{ Args: { "p_analysis_id": string,"p_error_message": string }; Returns: {
+              "analysis_id": string,"status": string
+            }[]
+                           },
 "has_org_role":
 { Args: { "p_org_id": string,"p_roles": (string)[] }; Returns: boolean
                            },
 "is_org_member":
 { Args: { "p_org_id": string }; Returns: boolean
+                           },
+"persist_structure_analysis":
+{ Args: { "p_analysis_id": string,"p_files_analyzed": number,"p_files_failed": number,"p_files_total": number,"p_files_unsupported": number,"p_relationships": Json,"p_run_token": string,"p_signature": string,"p_symbols": Json }; Returns: {
+              "id": string,"relationships_count": number,"status": string,"symbols_count": number
+            }[]
+                           },
+"reset_structure_analysis":
+{ Args: { "p_analysis_id": string }; Returns: {
+              "analysis_id": string,"status": string
+            }[]
                            },
 "slugify":
 { Args: { "p_fallback"?: string,"p_input": string }; Returns: string
