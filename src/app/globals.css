@@ -1,26 +1,228 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   OneForAll design system — tokens
+   One dark, enterprise palette. Every surface, border, text and status colour
+   in the app comes from these variables; components never hard-code colours.
+   ========================================================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+
+  /* surfaces (back to front) */
+  --bg: #090a0c;
+  --bg-subtle: #0c0d10;
+  --surface: #111317;
+  --surface-2: #15181d; /* elevated: cards on cards, menus */
+  --surface-3: #1b1f25; /* hover / pressed */
+
+  /* lines */
+  --border: #21252c;
+  --border-strong: #2d323a;
+
+  /* text */
+  --fg: #e7e9ec;
+  --fg-2: #a3a9b3; /* secondary */
+  --fg-3: #6c727d; /* muted */
+
+  /* brand + status */
+  --accent: #7b8cff;
+  --accent-strong: #6576ff;
+  --accent-fg: #0b0d14;
+  --success: #3ccf8e;
+  --warning: #f1a73b;
+  --danger: #f05a5f;
+  --info: #4ea5ff;
+
+  /* radius scale */
+  --radius-xs: 4px;
+  --radius-s: 6px;
+  --radius-m: 8px;
+  --radius-l: 10px;
+  --radius-xl: 14px;
+
+  /* elevation */
+  --shadow-1: 0 1px 0 0 rgb(255 255 255 / 0.03) inset, 0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --shadow-2: 0 1px 0 0 rgb(255 255 255 / 0.04) inset, 0 8px 24px -8px rgb(0 0 0 / 0.6);
+  --shadow-pop: 0 16px 48px -12px rgb(0 0 0 / 0.75), 0 0 0 1px var(--border-strong);
+
+  /* layout */
+  --sidebar-w: 248px;
+  --sidebar-w-compact: 64px;
+  --topbar-h: 56px;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-bg: var(--bg);
+  --color-bg-subtle: var(--bg-subtle);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
+  --color-fg-3: var(--fg-3);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-fg: var(--accent-fg);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-s);
+  --radius-md: var(--radius-m);
+  --radius-lg: var(--radius-l);
+  --radius-xl: var(--radius-xl);
+
+  --shadow-1: var(--shadow-1);
+  --shadow-2: var(--shadow-2);
+  --shadow-pop: var(--shadow-pop);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+/* In the base layer so component utilities (e.g. outline-none on inputs) can override them. */
+@layer base {
+  html {
+    background: var(--bg);
+  }
+
+  body {
+    background:
+      radial-gradient(1200px 480px at 70% -180px, rgb(123 140 255 / 0.07), transparent 70%),
+      var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: rgb(123 140 255 / 0.3);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+/* ==========================================================================
+   Typography scale (Display / H1 / H2 / H3 / Body / Small / Caption)
+   ========================================================================== */
+
+@utility t-display {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+@utility t-h1 {
+  font-size: 1.375rem;
+  line-height: 1.875rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+@utility t-h2 {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+@utility t-h3 {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 600;
+}
+@utility t-body {
+  font-size: 0.875rem;
+  line-height: 1.375rem;
+}
+@utility t-small {
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+@utility t-caption {
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   Motion (fast, subtle, and switched off for reduced-motion users)
+   ========================================================================== */
+
+@keyframes ofa-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes ofa-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes ofa-shimmer {
+  from {
+    background-position: -400px 0;
+  }
+  to {
+    background-position: 400px 0;
+  }
+}
+@keyframes ofa-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@utility animate-enter {
+  animation: ofa-enter 220ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@utility animate-pop {
+  animation: ofa-pop 140ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@utility animate-spin-fast {
+  animation: ofa-spin 700ms linear infinite;
+}
+@utility skeleton {
+  background: linear-gradient(90deg, var(--surface-2) 0%, var(--surface-3) 50%, var(--surface-2) 100%);
+  background-size: 800px 100%;
+  animation: ofa-shimmer 1.4s linear infinite;
+  border-radius: var(--radius-s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
 }

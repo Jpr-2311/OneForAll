@@ -1,6 +1,9 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ConnectRepositoryForm } from "@/components/repositories/connect-repository-form";
+import { Alert } from "@/components/ui/alert";
+import { Card, CardHeader } from "@/components/ui/card";
+import { IconBranch } from "@/components/ui/icons";
+import { PageBody, PageHeader } from "@/components/ui/page";
 import { getProjectContext } from "@/server/requirements/queries";
 import { createRepository } from "@/server/repositories/actions";
 import { getMyRepository } from "@/server/repositories/queries";
@@ -21,20 +24,36 @@ export default async function ConnectRepositoryPage({
   // A project has at most one primary repository: disconnect it before connecting another.
   if (await getMyRepository(project.id)) redirect(projectPath);
 
+  const teamsHref = `/organizations/${organization.id}/departments/${department.id}/teams`;
+
   return (
-    <div className="flex max-w-md flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <Link href={projectPath} className="text-sm underline">
-          {project.name}
-        </Link>
-        <h1 className="text-2xl font-semibold">Connect a repository</h1>
-        <p className="text-sm text-black/60 dark:text-white/60">
-          This only records the repository details. Nothing is cloned or analysed, and no credentials are needed
-          or stored. Never put a token in the URL.
-        </p>
+    <PageBody width="form">
+      <PageHeader
+        crumbs={[
+          { label: department.name, href: teamsHref },
+          { label: team.name, href: `${teamsHref}/${team.id}/projects` },
+          { label: project.name, href: projectPath },
+          { label: "Connect repository" },
+        ]}
+        title="Connect a repository"
+        description="Record the primary repository for this project."
+      />
+      <div className="flex flex-col gap-4">
+        <Alert tone="info" title="Metadata only">
+          This only records the repository details. Nothing is cloned or analysed, and no credentials are needed or stored.
+          Never put a token in the URL.
+        </Alert>
+        <Card>
+          <CardHeader icon={<IconBranch size={16} />} title="Repository details" description={`For ${project.name}`} />
+          <div className="px-5 py-5">
+            {/* Bound here, in the Server Component. Never `.bind()` inside the Client Component. */}
+            <ConnectRepositoryForm
+              action={createRepository.bind(null, organization.id, department.id, team.id, project.id)}
+              cancelHref={projectPath}
+            />
+          </div>
+        </Card>
       </div>
-      {/* Bound here, in the Server Component. Never `.bind()` inside the Client Component. */}
-      <ConnectRepositoryForm action={createRepository.bind(null, organization.id, department.id, team.id, project.id)} />
-    </div>
+    </PageBody>
   );
 }

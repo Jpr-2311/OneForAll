@@ -1,6 +1,9 @@
 "use client";
 
 import { useActionState } from "react";
+import { Alert } from "@/components/ui/alert";
+import { Spinner, buttonClass } from "@/components/ui/button";
+import { IconSparkle } from "@/components/ui/icons";
 import type { AnalysisActionState } from "@/server/repository-structure/schema";
 
 type AnalyzeStructureAction = (prev: AnalysisActionState, formData: FormData) => Promise<AnalysisActionState>;
@@ -10,15 +13,12 @@ export function AnalyzeStructureForm({ action, label }: { action: AnalyzeStructu
   const [state, formAction, pending] = useActionState<AnalysisActionState, FormData>(action, {});
 
   return (
-    <form action={formAction} className="flex flex-col gap-1">
-      <button type="submit" disabled={pending} className="w-fit text-sm underline disabled:opacity-50">
+    <form action={formAction} className="flex flex-col gap-3">
+      <button type="submit" disabled={pending} aria-busy={pending} className={buttonClass("primary", "md", "w-fit")}>
+        {pending ? <Spinner /> : <IconSparkle size={15} />}
         {pending ? "Analyzing…" : label}
       </button>
-      {state.error && (
-        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-          {state.error}
-        </p>
-      )}
+      {state.error && <Alert tone="danger">{state.error}</Alert>}
     </form>
   );
 }

@@ -1,6 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
+import { Spinner, buttonClass } from "@/components/ui/button";
+import { IconUnlink } from "@/components/ui/icons";
 import type { RepositoryActionResult } from "@/server/repositories/schema";
 
 type DisconnectRepositoryAction = (prev: RepositoryActionResult, formData: FormData) => Promise<RepositoryActionResult>;
@@ -10,12 +12,13 @@ export function DisconnectRepositoryForm({ action }: { action: DisconnectReposit
   const [state, formAction, pending] = useActionState<RepositoryActionResult, FormData>(action, {});
 
   return (
-    <form action={formAction} className="flex flex-col gap-1">
-      <button type="submit" disabled={pending} className="w-fit text-sm underline disabled:opacity-50">
+    <form action={formAction} className="flex flex-col items-end gap-2">
+      <button type="submit" disabled={pending} aria-busy={pending} className={buttonClass("danger", "sm")}>
+        {pending ? <Spinner /> : <IconUnlink size={14} />}
         {pending ? "Disconnecting…" : "Disconnect"}
       </button>
       {state.error && (
-        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+        <p role="alert" className="text-[12.5px] text-danger">
           {state.error}
         </p>
       )}

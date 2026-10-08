@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { Alert } from "@/components/ui/alert";
 import { FormField } from "@/components/ui/form-field";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { signIn } from "@/server/auth/actions";
@@ -12,7 +13,7 @@ export function LoginForm({ next }: { next?: string }) {
   return (
     <form action={formAction} className="flex flex-col gap-4" noValidate>
       {next && <input type="hidden" name="next" value={next} />}
-      <FormField label="Email" name="email" type="email" autoComplete="email" required errors={state.fieldErrors?.email} />
+      <FormField label="Email" name="email" type="email" autoComplete="email" placeholder="you@company.com" required errors={state.fieldErrors?.email} />
       <FormField
         label="Password"
         name="password"
@@ -21,12 +22,12 @@ export function LoginForm({ next }: { next?: string }) {
         required
         errors={state.fieldErrors?.password}
       />
-      {state.error && (
-        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-          {state.error}
-        </p>
-      )}
-      <SubmitButton pending={pending}>Sign in</SubmitButton>
+      {state.error && <Alert tone="danger">{state.error}</Alert>}
+      <div className="pt-1">
+        <SubmitButton pending={pending} pendingLabel="Signing in…" full>
+          Sign in
+        </SubmitButton>
+      </div>
     </form>
   );
 }

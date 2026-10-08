@@ -1,6 +1,8 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CreateDepartmentForm } from "@/components/departments/create-department-form";
+import { Card, CardHeader } from "@/components/ui/card";
+import { IconLayers } from "@/components/ui/icons";
+import { PageBody, PageHeader } from "@/components/ui/page";
 import { requireUser } from "@/server/auth/session";
 import { createDepartment } from "@/server/departments/actions";
 import { idSchema } from "@/server/departments/schema";
@@ -17,16 +19,26 @@ export default async function NewDepartmentPage({
   const user = await requireUser();
   const organization = await getMyOrganization(organizationId, user.id);
   if (!organization) notFound();
+  const listHref = `/organizations/${organization.id}/departments`;
 
   return (
-    <div className="flex max-w-md flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <Link href={`/organizations/${organization.id}/departments`} className="text-sm underline">
-          {organization.name} · Departments
-        </Link>
-        <h1 className="text-2xl font-semibold">Create a department</h1>
-      </div>
-      <CreateDepartmentForm action={createDepartment.bind(null, organization.id)} />
-    </div>
+    <PageBody width="form">
+      <PageHeader
+        crumbs={[
+          { label: "Organizations", href: "/organizations/new" },
+          { label: organization.name, href: listHref },
+          { label: "Departments", href: listHref },
+          { label: "New" },
+        ]}
+        title="Create a department"
+        description="Departments group teams by area of ownership."
+      />
+      <Card>
+        <CardHeader icon={<IconLayers size={16} />} title="Department details" description={`In ${organization.name}`} />
+        <div className="px-5 py-5">
+          <CreateDepartmentForm action={createDepartment.bind(null, organization.id)} cancelHref={listHref} />
+        </div>
+      </Card>
+    </PageBody>
   );
 }

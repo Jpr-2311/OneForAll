@@ -1,9 +1,23 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ButtonLink } from "@/components/ui/button";
+import { Card, CardHeader } from "@/components/ui/card";
+import { EmptyState, KeyValueList } from "@/components/ui/data";
+import { IconListChecks, IconPlus, IconTask } from "@/components/ui/icons";
+import { PageBody, PageHeader, SectionHeader } from "@/components/ui/page";
+import { PriorityBadge, StatusBadge, humanize, toneFor } from "@/components/ui/status";
 import { getMyRequirement, getProjectContext } from "@/server/requirements/queries";
+import { TASK_STATUSES } from "@/server/tasks/schema";
 import { listTasks } from "@/server/tasks/queries";
+import { cx } from "@/lib/cx";
 
 export const metadata = { title: "Requirement · OneForAll" };
+
+const COLUMN_ACCENT: Record<string, string> = {
+  neutral: "bg-fg-3",
+  accent: "bg-accent",
+  success: "bg-success",
+  muted: "bg-border-strong",
+};
 
 export default async function RequirementPage({
   params,
@@ -18,47 +32,128 @@ export default async function RequirementPage({
   if (!requirement) notFound();
 
   const tasks = await listTasks(requirement.id);
-  const base = `/organizations/${organization.id}/departments/${department.id}/teams/${team.id}/projects/${project.id}/requirements`;
+  const projectPath = `/organizations/${organization.id}/departments/${department.id}/teams/${team.id}/projects/${project.id}`;
+  const base = `${projectPath}/requirements`;
+  const done = tasks.filter((t) => t.status === "COMPLETED").length;
+  const progress = tasks.length > 0 ? Math.round((done / tasks.length) * 100) : 0;
 
   return (
-    <div className="flex max-w-2xl flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <Link href={base} className="text-sm underline">
-          {project.name} · Requirements
-        </Link>
-        <h1 className="text-2xl font-semibold">{requirement.title}</h1>
-      </div>
-      {requirement.description && <p className="text-sm">{requirement.description}</p>}
-      <dl className="grid grid-cols-[6rem_1fr] gap-y-1 text-sm">
-        <dt className="text-black/60 dark:text-white/60">Status</dt>
-        <dd>{requirement.status}</dd>
-        <dt className="text-black/60 dark:text-white/60">Priority</dt>
-        <dd>{requirement.priority}</dd>
-      </dl>
+    <PageBody>
+      <PageHeader
+        crumbs={[
+          { label: project.name, href: projectPath },
+          { label: "Requirements", href: base },
+          { label: requirement.title },
+        ]}
+        icon={<IconListChecks size={18} />}
+        title={requirement.title}
+        badges={
+          <>
+            <StatusBadge kind="requirement" value={requirement.status} />
+            <PriorityBadge value={requirement.priority} />
+          </>
+        }
+        actions={
+          /* UI hint only. The database enforces who may actually create tasks. */
+          canManage && (
+            <ButtonLink href={`${base}/${requirement.id}/tasks/new`} variant="primary">
+              <IconPlus size={15} />
+              New task
+            </ButtonLink>
+          )
+        }
+      />
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-medium">Tasks</h2>
-        {/* UI hint only. The database enforces who may actually create tasks. */}
-        {canManage && (
-          <Link href={`${base}/${requirement.id}/tasks/new`} className="text-sm underline">
-            New task
-          </Link>
-        )}
-        {tasks.length === 0 ? (
-          <p className="text-sm text-black/60 dark:text-white/60">No tasks yet.</p>
-        ) : (
-          <ul className="flex flex-col gap-3">
-            {tasks.map((task) => (
-              <li key={task.id} className="flex flex-col gap-0.5">
-                <span className="font-medium">{task.title}</span>
-                <span className="text-sm text-black/60 dark:text-white/60">
-                  {task.status} · {task.priority}
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="flex min-w-0 flex-col gap-8">
+          <Card>
+            <CardHeader title="Description" />
+            <div className="px-5 py-4">
+              {requirement.description ? (
+                <p className="t-body whitespace-pre-line text-fg-2">{requirement.description}</p>
+              ) : (
+                <p className="t-small text-fg-3">No description provided.</p>
+              )}
+            </div>
+          </Card>
+
+          <section>
+            <SectionHeader title="Tasks" description={`${tasks.length} ${tasks.length === 1 ? "task" : "tasks"} for this requirement`} icon={<IconTask size={16} />} />
+            {tasks.length === 0 ? (
+              <EmptyState
+                compact
+                icon={<IconTask size={20} />}
+                title="No tasks yet"
+                description="Break this requirement into concrete tasks your team can pick up."
+                action={
+                  canManage && (
+                    <ButtonLink href={`${base}/${requirement.id}/tasks/new`} variant="primary">
+                      <IconPlus size={15} />
+                      Create task
+                    </ButtonLink>
+                  )
+                }
+              />
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                {TASK_STATUSES.map((status) => {
+                  const column = tasks.filter((task) => task.status === status);
+                  return (
+                    <div key={status} className="flex min-w-0 flex-col rounded-xl border border-border bg-bg-subtle/60">
+                      <div className="flex items-center gap-2 px-3 py-2.5">
+                        <span className={cx("size-2 rounded-full", COLUMN_ACCENT[toneFor("task", status)] ?? "bg-fg-3")} />
+                        <span className="text-[12.5px] font-medium text-fg-2">{humanize(status)}</span>
+                        <span className="ml-auto rounded bg-surface-3 px-1.5 text-[11px] tabular-nums text-fg-3">{column.length}</span>
+                      </div>
+                      <ul className="flex flex-col gap-2 px-2 pb-2">
+                        {column.length === 0 && <li className="rounded-lg border border-dashed border-border px-3 py-4 text-center text-[12px] text-fg-3">No tasks</li>}
+                        {column.map((task) => (
+                          <li key={task.id} className="rounded-lg border border-border bg-surface p-3 shadow-1 transition-colors hover:border-border-strong">
+                            <p className="text-[13px] font-medium leading-snug text-fg">{task.title}</p>
+                            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                              <PriorityBadge value={task.priority} />
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        </div>
+
+        <aside className="grid h-fit gap-3 sm:grid-cols-2 xl:flex xl:flex-col">
+          <Card>
+            <CardHeader title="Details" />
+            <div className="px-5 py-4">
+              <KeyValueList
+                items={[
+                  { label: "Status", value: <StatusBadge kind="requirement" value={requirement.status} /> },
+                  { label: "Priority", value: <PriorityBadge value={requirement.priority} /> },
+                  { label: "Project", value: project.name },
+                  { label: "Tasks", value: tasks.length },
+                ]}
+              />
+            </div>
+          </Card>
+          {tasks.length > 0 && (
+            <Card className="px-5 py-4">
+              <div className="flex items-center justify-between">
+                <span className="t-caption text-fg-3">Task progress</span>
+                <span className="t-small tabular-nums text-fg-2">
+                  {done}/{tasks.length}
                 </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </div>
+              </div>
+              <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-surface-3">
+                <div className="h-full rounded-full bg-success" style={{ width: `${progress}%` }} />
+              </div>
+              <p className="t-small mt-2 text-fg-3">{progress}% completed</p>
+            </Card>
+          )}
+        </aside>
+      </div>
+    </PageBody>
   );
 }

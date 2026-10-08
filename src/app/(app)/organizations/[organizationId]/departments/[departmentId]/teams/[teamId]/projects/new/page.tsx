@@ -1,6 +1,8 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CreateProjectForm } from "@/components/projects/create-project-form";
+import { Card, CardHeader } from "@/components/ui/card";
+import { IconFolder } from "@/components/ui/icons";
+import { PageBody, PageHeader } from "@/components/ui/page";
 import { createProject } from "@/server/projects/actions";
 import { getTeamContext } from "@/server/projects/queries";
 
@@ -15,21 +17,29 @@ export default async function NewProjectPage({
   // This is a UI gate only; RLS rejects the insert regardless.
   if (!context || !context.canManage) notFound();
   const { organization, department, team } = context;
+  const deptsHref = `/organizations/${organization.id}/departments`;
+  const teamsHref = `${deptsHref}/${department.id}/teams`;
+  const projectsHref = `${teamsHref}/${team.id}/projects`;
 
   return (
-    <div className="flex max-w-md flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <Link
-          href={`/organizations/${organization.id}/departments/${department.id}/teams/${team.id}/projects`}
-          className="text-sm underline"
-        >
-          {team.name} · Projects
-        </Link>
-        <h1 className="text-2xl font-semibold">Create a project</h1>
-        <p className="text-sm text-black/60 dark:text-white/60">New projects start as a draft.</p>
-      </div>
-      {/* Bound here, in the Server Component. Never `.bind()` inside the Client Component. */}
-      <CreateProjectForm action={createProject.bind(null, organization.id, department.id, team.id)} />
-    </div>
+    <PageBody width="form">
+      <PageHeader
+        crumbs={[
+          { label: organization.name, href: deptsHref },
+          { label: department.name, href: teamsHref },
+          { label: team.name, href: projectsHref },
+          { label: "New project" },
+        ]}
+        title="Create a project"
+        description="New projects start as a draft. You can connect a repository and add requirements afterwards."
+      />
+      <Card>
+        <CardHeader icon={<IconFolder size={16} />} title="Project details" description={`Owned by ${team.name}`} />
+        <div className="px-5 py-5">
+          {/* Bound here, in the Server Component. Never `.bind()` inside the Client Component. */}
+          <CreateProjectForm action={createProject.bind(null, organization.id, department.id, team.id)} cancelHref={projectsHref} />
+        </div>
+      </Card>
+    </PageBody>
   );
 }

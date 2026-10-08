@@ -1,5 +1,24 @@
 import Link from "next/link";
 import { AnalyzeStructureForm } from "@/components/repository-structure/analyze-structure-form";
+import { Alert } from "@/components/ui/alert";
+import { ButtonLink } from "@/components/ui/button";
+import { Card, CardHeader } from "@/components/ui/card";
+import { EmptyState, MetricCard, formatDateTime } from "@/components/ui/data";
+import {
+  IconActivity,
+  IconArrowRight,
+  IconBranch,
+  IconClock,
+  IconCode,
+  IconCommit,
+  IconFileCode,
+  IconLink,
+  IconNetwork,
+  IconPlus,
+  IconSymbol,
+} from "@/components/ui/icons";
+import { SectionHeader } from "@/components/ui/page";
+import { StatusBadge } from "@/components/ui/status";
 import { listSnapshots } from "@/server/repository-snapshots/queries";
 import { STATUS_LABELS } from "@/server/repository-snapshots/schema";
 import { analyzeStructure } from "@/server/repository-structure/actions";
@@ -18,10 +37,6 @@ type Props = {
 };
 
 const PREVIEW_COUNT = 5;
-
-function formatDate(iso: string) {
-  return iso.replace("T", " ").slice(0, 16) + " UTC";
-}
 
 function statusLabel(status: string) {
   return (STATUS_LABELS as Record<string, string>)[status] ?? status;
@@ -52,98 +67,239 @@ export async function RepositoryIntelligence({
   const readiness = getAnalysisReadiness();
 
   return (
-    <section className="flex flex-col gap-3 border-t border-black/10 pt-4 dark:border-white/15">
-      <h2 className="text-lg font-medium">Repository Intelligence</h2>
+    <section id="intelligence" className="scroll-mt-24">
+      <SectionHeader
+        icon={<IconNetwork size={16} />}
+        title="Repository Intelligence"
+        description="Snapshots of the code this project ships, and the structure extracted from them."
+        actions={
+          <>
+            {/* UI hint only. The database enforces who may actually create snapshots. */}
+            {canManage && (
+              <ButtonLink href={`${repositoryPath}/snapshots/new`} variant="secondary" size="sm">
+                <IconPlus size={14} />
+                Create snapshot
+              </ButtonLink>
+            )}
+            {latest && (
+              <ButtonLink href={`${repositoryPath}/snapshots`} variant="ghost" size="sm">
+                {snapshots.length > PREVIEW_COUNT ? `View all ${snapshots.length} snapshots` : "Snapshot list"}
+                <IconArrowRight size={13} />
+              </ButtonLink>
+            )}
+          </>
+        }
+      />
+
       {!latest ? (
-        <p className="text-sm text-black/60 dark:text-white/60">No snapshots available.</p>
+        <EmptyState
+          compact
+          icon={<IconCommit size={20} />}
+          title="No snapshots available"
+          description="A snapshot records the repository at a specific commit. Structure analysis runs on completed snapshots."
+          action={
+            canManage && (
+              <ButtonLink href={`${repositoryPath}/snapshots/new`} variant="primary">
+                <IconPlus size={15} />
+                Create snapshot
+              </ButtonLink>
+            )
+          }
+        />
       ) : (
-        <>
-          <dl className="grid grid-cols-[8rem_1fr] gap-y-1 text-sm">
-            <dt className="text-black/60 dark:text-white/60">Latest snapshot</dt>
-            <dd className="font-mono">{latest.commit_sha}</dd>
-            <dt className="text-black/60 dark:text-white/60">Branch</dt>
-            <dd>{latest.branch}</dd>
-            <dt className="text-black/60 dark:text-white/60">Status</dt>
-            <dd>{statusLabel(latest.status)}</dd>
-            <dt className="text-black/60 dark:text-white/60">Created</dt>
-            <dd>{formatDate(latest.created_at)}</dd>
-            <dt className="text-black/60 dark:text-white/60">Files recorded</dt>
-            <dd>{latest.fileCount}</dd>
-          </dl>
-          <ul className="flex flex-col gap-1 text-sm">
-            {snapshots.slice(0, PREVIEW_COUNT).map((snapshot) => (
-              <li key={snapshot.id}>
-                <span className="font-mono">{snapshot.commit_sha.slice(0, 12)}</span> · {snapshot.branch} ·{" "}
-                {statusLabel(snapshot.status)} · {formatDate(snapshot.created_at)}
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-      {analyzable && (
-        <div className="flex flex-col gap-2 border-t border-black/10 pt-3 dark:border-white/15">
-          <h3 className="text-base font-medium">Structure analysis</h3>
-          <p className="text-sm text-black/60 dark:text-white/60">
-            Snapshot <span className="font-mono">{analyzable.commit_sha.slice(0, 12)}</span>
-          </p>
-          {!analysis ? (
-            <p className="text-sm text-black/60 dark:text-white/60">Not analysed yet.</p>
+        <div className="flex flex-col gap-4">
+          {/* Latest snapshot */}
+          <Card className="overflow-hidden">
+            <div className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-border-strong bg-surface-2 text-fg-2">
+                  <IconCommit size={16} />
+                </span>
+                <div className="min-w-0">
+                  <p className="t-caption text-fg-3">Latest snapshot</p>
+                  <p className="truncate font-mono text-[13px] text-fg" title={latest.commit_sha}>
+                    {latest.commit_sha}
+                  </p>
+                </div>
+              </div>
+              <StatusBadge kind="snapshot" value={latest.status} label={statusLabel(latest.status)} />
+            </div>
+            <div className="grid grid-cols-1 border-t border-border sm:grid-cols-3">
+              <Fact icon={<IconBranch size={13} />} label="Branch" value={<span className="font-mono">{latest.branch}</span>} />
+              <Fact icon={<IconFileCode size={13} />} label="Files recorded" value={<span className="tabular-nums">{latest.fileCount}</span>} />
+              <Fact icon={<IconClock size={13} />} label="Created" value={formatDateTime(latest.created_at)} />
+            </div>
+          </Card>
+
+          {/* Structure analysis */}
+          {analyzable ? (
+            <Card className="overflow-hidden">
+              <CardHeader
+                icon={<IconCode size={16} />}
+                title="Structure analysis"
+                description={
+                  <>
+                    Snapshot <span className="font-mono text-fg-2">{analyzable.commit_sha.slice(0, 12)}</span>
+                  </>
+                }
+                actions={
+                  analysis ? (
+                    <StatusBadge kind="analysis" value={analysis.status} label={analysisStatusLabel(analysis.status)} />
+                  ) : (
+                    <StatusBadge kind="analysis" value="NONE" label="Not analysed" />
+                  )
+                }
+              />
+              <div className="flex flex-col gap-4 px-5 py-5">
+                {!analysis ? (
+                  <p className="t-small text-fg-3">
+                    Not analysed yet. Analysis extracts symbols and their relationships from the snapshot’s source files.
+                  </p>
+                ) : (
+                  <>
+                    {analysis.status === "COMPLETED" && (
+                      <>
+                        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+                          <MetricCard label="Symbols" value={analysis.symbols_count} icon={<IconSymbol size={15} />} hint="Classes, functions, methods…" />
+                          <MetricCard label="Relationships" value={analysis.relationships_count} icon={<IconLink size={15} />} hint="Contains, imports, extends…" />
+                          <MetricCard
+                            label="Files analysed"
+                            value={
+                              <>
+                                {analysis.files_analyzed}
+                                <span className="text-[15px] font-normal text-fg-3"> / {analysis.files_total}</span>
+                              </>
+                            }
+                            icon={<IconFileCode size={15} />}
+                          />
+                        </div>
+                        <Coverage
+                          total={analysis.files_total}
+                          analyzed={analysis.files_analyzed}
+                          unsupported={analysis.files_unsupported}
+                          failed={analysis.files_failed}
+                        />
+                      </>
+                    )}
+                    {analysis.status === "PROCESSING" && (
+                      <div className="flex items-center gap-2.5 text-[13px] text-info">
+                        <IconActivity size={16} />
+                        Analysis in progress…
+                      </div>
+                    )}
+                    {analysis.completed_at && (
+                      <p className="t-small flex items-center gap-1.5 text-fg-3">
+                        <IconClock size={13} />
+                        Finished {formatDateTime(analysis.completed_at)}
+                      </p>
+                    )}
+                  </>
+                )}
+                {analysis?.status === "FAILED" && analysis.error_message && (
+                  <Alert tone="danger" title="Analysis failed">
+                    {analysis.error_message}
+                  </Alert>
+                )}
+                {/* UI hint only. The database enforces who may actually run an analysis. */}
+                {!readiness.ready && (!analysis || analysis.status === "PENDING" || analysis.status === "FAILED") && (
+                  <Alert tone="info">{readiness.message}</Alert>
+                )}
+                {canRun && readiness.ready && (
+                  <div>
+                    <AnalyzeStructureForm
+                      action={analyzeStructure.bind(null, organizationId, departmentId, teamId, projectId, analyzable.id)}
+                      label={analysis?.status === "FAILED" ? "Retry Analysis" : "Analyze Structure"}
+                    />
+                  </div>
+                )}
+              </div>
+            </Card>
           ) : (
-            <dl className="grid grid-cols-[8rem_1fr] gap-y-1 text-sm">
-              <dt className="text-black/60 dark:text-white/60">Status</dt>
-              <dd>{analysisStatusLabel(analysis.status)}</dd>
-              {analysis.status === "COMPLETED" && (
-                <>
-                  <dt className="text-black/60 dark:text-white/60">Files analysed</dt>
-                  <dd>
-                    {analysis.files_analyzed} of {analysis.files_total}
-                  </dd>
-                  <dt className="text-black/60 dark:text-white/60">Unsupported</dt>
-                  <dd>{analysis.files_unsupported}</dd>
-                  <dt className="text-black/60 dark:text-white/60">Failed</dt>
-                  <dd>{analysis.files_failed}</dd>
-                  <dt className="text-black/60 dark:text-white/60">Symbols</dt>
-                  <dd>{analysis.symbols_count}</dd>
-                  <dt className="text-black/60 dark:text-white/60">Relationships</dt>
-                  <dd>{analysis.relationships_count}</dd>
-                </>
-              )}
-              {analysis.completed_at && (
-                <>
-                  <dt className="text-black/60 dark:text-white/60">Finished</dt>
-                  <dd>{formatDate(analysis.completed_at)}</dd>
-                </>
-              )}
-            </dl>
-          )}
-          {analysis?.status === "FAILED" && analysis.error_message && (
-            <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-              {analysis.error_message}
-            </p>
-          )}
-          {/* UI hint only. The database enforces who may actually run an analysis. */}
-          {!readiness.ready && (!analysis || analysis.status === "PENDING" || analysis.status === "FAILED") && (
-            <p className="text-sm text-black/60 dark:text-white/60">{readiness.message}</p>
-          )}
-          {canRun && readiness.ready && (
-            <AnalyzeStructureForm
-              action={analyzeStructure.bind(null, organizationId, departmentId, teamId, projectId, analyzable.id)}
-              label={analysis?.status === "FAILED" ? "Retry Analysis" : "Analyze Structure"}
+            <EmptyState
+              compact
+              icon={<IconCode size={20} />}
+              title="No structure analysis yet"
+              description="Structure analysis becomes available once a snapshot of this repository is completed."
             />
           )}
+
+          {/* Recent snapshots */}
+          <Card className="overflow-hidden">
+            <CardHeader title="Recent snapshots" description={`${snapshots.length} recorded`} />
+            <ul className="divide-y divide-border">
+              {snapshots.slice(0, PREVIEW_COUNT).map((snapshot) => (
+                <li key={snapshot.id} className="flex flex-wrap items-center gap-x-4 gap-y-1.5 px-5 py-3">
+                  <span className="font-mono text-[12.5px] text-fg">{snapshot.commit_sha.slice(0, 12)}</span>
+                  <span className="inline-flex items-center gap-1 font-mono text-[12px] text-fg-3">
+                    <IconBranch size={12} />
+                    {snapshot.branch}
+                  </span>
+                  <span className="t-small text-fg-3">{formatDateTime(snapshot.created_at)}</span>
+                  <span className="ml-auto">
+                    <StatusBadge kind="snapshot" value={snapshot.status} label={statusLabel(snapshot.status)} />
+                  </span>
+                </li>
+              ))}
+            </ul>
+            {snapshots.length > PREVIEW_COUNT && (
+              <Link
+                href={`${repositoryPath}/snapshots`}
+                className="flex items-center justify-center gap-1 border-t border-border py-2.5 text-[12.5px] text-fg-2 transition-colors hover:bg-surface-2 hover:text-fg"
+              >
+                View all {snapshots.length} snapshots <IconArrowRight size={13} />
+              </Link>
+            )}
+          </Card>
         </div>
       )}
-      {/* UI hint only. The database enforces who may actually create snapshots. */}
-      {canManage && (
-        <Link href={`${repositoryPath}/snapshots/new`} className="text-sm underline">
-          Create snapshot
-        </Link>
-      )}
-      {latest && (
-        <Link href={`${repositoryPath}/snapshots`} className="text-sm underline">
-          {snapshots.length > PREVIEW_COUNT ? `View all ${snapshots.length} snapshots` : "Snapshot list"}
-        </Link>
-      )}
     </section>
+  );
+}
+
+function Fact({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-border px-5 py-3 sm:block sm:[&:not(:last-child)]:border-r max-sm:[&:not(:last-child)]:border-b">
+      <p className="t-caption flex items-center gap-1.5 text-fg-3">
+        {icon}
+        {label}
+      </p>
+      <p className="t-small truncate text-fg sm:mt-1">{value}</p>
+    </div>
+  );
+}
+
+// File coverage bar: analysed / unsupported / failed out of the snapshot's files (real counts only).
+function Coverage({ total, analyzed, unsupported, failed }: { total: number; analyzed: number; unsupported: number; failed: number }) {
+  const pct = (n: number) => (total > 0 ? (n / total) * 100 : 0);
+  const segments = [
+    { label: "Analysed", value: analyzed, className: "bg-success" },
+    { label: "Unsupported", value: unsupported, className: "bg-fg-3" },
+    { label: "Failed", value: failed, className: "bg-danger" },
+  ];
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between">
+        <span className="t-caption text-fg-3">File coverage</span>
+        <span className="t-small text-fg-3 tabular-nums">{total} files</span>
+      </div>
+      <div
+        className="flex h-2 w-full overflow-hidden rounded-full bg-surface-3"
+        role="img"
+        aria-label={`${analyzed} analysed, ${unsupported} unsupported, ${failed} failed of ${total} files`}
+      >
+        {segments.map((segment) =>
+          segment.value > 0 ? <span key={segment.label} className={segment.className} style={{ width: `${pct(segment.value)}%` }} /> : null,
+        )}
+      </div>
+      <div className="mt-2.5 flex flex-wrap gap-x-5 gap-y-1">
+        {segments.map((segment) => (
+          <span key={segment.label} className="t-small inline-flex items-center gap-1.5 text-fg-3">
+            <span className={`size-2 rounded-full ${segment.className}`} />
+            {segment.label}
+            <span className="text-fg tabular-nums">{segment.value}</span>
+          </span>
+        ))}
+      </div>
+    </div>
   );
 }

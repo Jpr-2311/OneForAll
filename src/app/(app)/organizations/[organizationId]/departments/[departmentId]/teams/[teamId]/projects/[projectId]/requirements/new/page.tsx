@@ -1,6 +1,8 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { WorkItemForm } from "@/components/work-items/work-item-form";
+import { Card, CardHeader } from "@/components/ui/card";
+import { IconListChecks } from "@/components/ui/icons";
+import { PageBody, PageHeader } from "@/components/ui/page";
 import { createRequirement } from "@/server/requirements/actions";
 import { getProjectContext } from "@/server/requirements/queries";
 
@@ -15,24 +17,32 @@ export default async function NewRequirementPage({
   // This is a UI gate only; RLS rejects the insert regardless.
   if (!context || !context.canManage) notFound();
   const { organization, department, team, project } = context;
+  const projectPath = `/organizations/${organization.id}/departments/${department.id}/teams/${team.id}/projects/${project.id}`;
+  const listHref = `${projectPath}/requirements`;
 
   return (
-    <div className="flex max-w-md flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <Link
-          href={`/organizations/${organization.id}/departments/${department.id}/teams/${team.id}/projects/${project.id}/requirements`}
-          className="text-sm underline"
-        >
-          {project.name} · Requirements
-        </Link>
-        <h1 className="text-2xl font-semibold">New requirement</h1>
-        <p className="text-sm text-black/60 dark:text-white/60">New requirements start as a draft.</p>
-      </div>
-      {/* Bound here, in the Server Component. Never `.bind()` inside the Client Component. */}
-      <WorkItemForm
-        action={createRequirement.bind(null, organization.id, department.id, team.id, project.id)}
-        submitLabel="Create requirement"
+    <PageBody width="form">
+      <PageHeader
+        crumbs={[
+          { label: project.name, href: projectPath },
+          { label: "Requirements", href: listHref },
+          { label: "New" },
+        ]}
+        title="New requirement"
+        description="New requirements start as a draft."
       />
-    </div>
+      <Card>
+        <CardHeader icon={<IconListChecks size={16} />} title="Requirement details" description={`For ${project.name}`} />
+        <div className="px-5 py-5">
+          {/* Bound here, in the Server Component. Never `.bind()` inside the Client Component. */}
+          <WorkItemForm
+            action={createRequirement.bind(null, organization.id, department.id, team.id, project.id)}
+            submitLabel="Create requirement"
+            kind="requirement"
+            cancelHref={listHref}
+          />
+        </div>
+      </Card>
+    </PageBody>
   );
 }

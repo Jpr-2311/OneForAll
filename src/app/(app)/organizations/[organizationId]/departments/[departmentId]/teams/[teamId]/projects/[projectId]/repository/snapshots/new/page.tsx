@@ -1,6 +1,9 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CreateSnapshotForm } from "@/components/repository-snapshots/create-snapshot-form";
+import { Alert } from "@/components/ui/alert";
+import { Card, CardHeader } from "@/components/ui/card";
+import { IconCommit } from "@/components/ui/icons";
+import { PageBody, PageHeader } from "@/components/ui/page";
 import { createSnapshot } from "@/server/repository-snapshots/actions";
 import { getRepositoryContext } from "@/server/repository-snapshots/queries";
 
@@ -14,25 +17,34 @@ export default async function NewSnapshotPage({
   // Only OWNER/ADMIN may create snapshots, so everyone else gets the same 404 as an invalid path.
   // This is a UI gate only; RLS rejects the insert regardless.
   if (!context || !context.canManage) notFound();
-  const { organization, department, team, project } = context;
+  const { organization, department, team, project, repository } = context;
+  const projectPath = `/organizations/${organization.id}/departments/${department.id}/teams/${team.id}/projects/${project.id}`;
+  const snapshotsHref = `${projectPath}/repository/snapshots`;
 
   return (
-    <div className="flex max-w-md flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <Link
-          href={`/organizations/${organization.id}/departments/${department.id}/teams/${team.id}/projects/${project.id}/repository/snapshots`}
-          className="text-sm underline"
-        >
-          Snapshots
-        </Link>
-        <h1 className="text-2xl font-semibold">Create a snapshot</h1>
-        <p className="text-sm text-black/60 dark:text-white/60">
-          This records a snapshot of the repository at a commit. It starts as pending; nothing is cloned or
-          analysed yet.
-        </p>
+    <PageBody width="form">
+      <PageHeader
+        crumbs={[
+          { label: project.name, href: projectPath },
+          { label: "Snapshots", href: snapshotsHref },
+          { label: "New" },
+        ]}
+        title="Create a snapshot"
+        description={`Record ${repository.owner} / ${repository.name} at a specific commit.`}
+      />
+      <div className="flex flex-col gap-4">
+        <Alert tone="info">This records a snapshot of the repository at a commit. It starts as pending; nothing is cloned or analysed yet.</Alert>
+        <Card>
+          <CardHeader icon={<IconCommit size={16} />} title="Snapshot details" />
+          <div className="px-5 py-5">
+            {/* Bound here, in the Server Component. Never `.bind()` inside the Client Component. */}
+            <CreateSnapshotForm
+              action={createSnapshot.bind(null, organization.id, department.id, team.id, project.id)}
+              cancelHref={snapshotsHref}
+            />
+          </div>
+        </Card>
       </div>
-      {/* Bound here, in the Server Component. Never `.bind()` inside the Client Component. */}
-      <CreateSnapshotForm action={createSnapshot.bind(null, organization.id, department.id, team.id, project.id)} />
-    </div>
+    </PageBody>
   );
 }

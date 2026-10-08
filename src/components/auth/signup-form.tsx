@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { Alert } from "@/components/ui/alert";
 import { FormField } from "@/components/ui/form-field";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { signUp } from "@/server/auth/actions";
@@ -11,16 +12,16 @@ export function SignupForm() {
 
   if (state.message) {
     return (
-      <p role="status" className="text-sm">
+      <Alert tone="success" title="Check your inbox">
         {state.message}
-      </p>
+      </Alert>
     );
   }
 
   return (
     <form action={formAction} className="flex flex-col gap-4" noValidate>
-      <FormField label="Name" name="displayName" autoComplete="name" required errors={state.fieldErrors?.displayName} />
-      <FormField label="Email" name="email" type="email" autoComplete="email" required errors={state.fieldErrors?.email} />
+      <FormField label="Name" name="displayName" autoComplete="name" placeholder="Ada Lovelace" required errors={state.fieldErrors?.displayName} />
+      <FormField label="Work email" name="email" type="email" autoComplete="email" placeholder="you@company.com" required errors={state.fieldErrors?.email} />
       <FormField
         label="Password"
         name="password"
@@ -29,12 +30,12 @@ export function SignupForm() {
         required
         errors={state.fieldErrors?.password}
       />
-      {state.error && (
-        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-          {state.error}
-        </p>
-      )}
-      <SubmitButton pending={pending}>Create account</SubmitButton>
+      {state.error && <Alert tone="danger">{state.error}</Alert>}
+      <div className="pt-1">
+        <SubmitButton pending={pending} pendingLabel="Creating account…" full>
+          Create account
+        </SubmitButton>
+      </div>
     </form>
   );
 }
